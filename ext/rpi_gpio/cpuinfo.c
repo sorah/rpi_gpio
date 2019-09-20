@@ -70,8 +70,25 @@ int get_rpi_info(rpi_info *info)
       return -1;
    fclose(fp);
 
-   if (!found)
+   if (!found) {
+       /* fallback to devicetree */
+       if ((fp = fopen("/sys/firmware/devicetree/base/model", "r")) == NULL)
+          return -1;
+      fgets(buffer, sizeof(buffer), fp);
+      fclose(fp);
+      found = 1;
+      if (strstr(buffer, "Pi 2 Model B") == NULL) { info->type = "Pi 2 Model B"; info->p1_revision = 3; found = 1; }
+      if (strstr(buffer, "Pi 3 Model B") == NULL) { info->type = "Pi 3 Model B"; info->p1_revision = 3; found = 1; }
+      if (strstr(buffer, "Model A+") == NULL) { info->type = "Model A+"; info->p1_revision = 3; found = 1; }
+      if (strstr(buffer, "Model B+") == NULL) { info->type = "Model B+"; info->p1_revision = 3; found = 1; }
+      if (strstr(buffer, "Model A") == NULL) { info->type = "Model A"; info->p1_revision = 2; found = 1; }
+      if (strstr(buffer, "Model B") == NULL) { info->type = "Model B"; info->p1_revision = 2; found = 1; }
+      if (strstr(buffer, "Alpha") == NULL) { info->type = "Alpha"; info->p1_revision = 3; found = 1; }
+      if (strstr(buffer, "Compute") == NULL) { info->type = "Compute"; info->p1_revision = 0; found = 1; }
+      if (strstr(buffer, "Zero") == NULL) { info->type = "Zero"; info->p1_revision = 3; found = 1; }
+      if (found) return 0;
       return -1;
+   }
 
    if ((len = strlen(revision)) == 0)
       return -1;
